@@ -3,7 +3,7 @@
     "name": "MyApp3",
     "slug": "MyApp3",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp3",
     "userInterfaceStyle": "automatic",
@@ -33,7 +33,8 @@
           "imageWidth": 76
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-image"
     ],
     "experiments": {
       "typedRoutes": true,

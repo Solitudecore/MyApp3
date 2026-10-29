@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, TextInput, SectionList, Platform } from 'react-native';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert, TextInput, SectionList, Platform, KeyboardAvoidingView,useWindowDimensions} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import Header from '../components/Header'; 
@@ -21,6 +21,9 @@ export default function RootLayout() {
 
   const [newName, setNewName] = useState('');
   const [newPrice, setNewPrice] = useState('');
+ 
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
 
   const handleAddProduct = () => {
     if (newName.trim() === '' || newPrice.trim() === '') {
@@ -62,71 +65,85 @@ export default function RootLayout() {
     .filter(section => section.data[0].length > 0); 
 
   return (
-    <View style={styles.container}>
-      <Header cartCount={cartCount} cartTotal={cartTotal} />
-
-      <View>
-        <FlatList 
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesContainer}
-          data={categories}
-          
-          keyExtractor={(item) => item}
-          renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={[styles.categoryBtn, selectedCategory === item && styles.categoryBtnActive]}
-              onPress={() => setSelectedCategory(item)}
-            >
-              <Text style={[styles.categoryText, selectedCategory === item && styles.categoryTextActive]}>{item}</Text>
-            </TouchableOpacity>
-
-
-          )}
-        />
-      </View>
-
-      <View style={styles.addForm}>
-        <TextInput
-          style={styles.input}
-          placeholder="Product name"
-          value={newName}
-          onChangeText={setNewName}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Price"
-          value={newPrice}
-          onChangeText={setNewPrice}
-          keyboardType="numeric"
-          onSubmitEditing={handleAddProduct}
-        />
-        <TouchableOpacity style={styles.submitBtn} onPress={handleAddProduct}>
-          <MaterialCommunityIcons name="plus" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      <SectionList
-        sections={sectionsData}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.listContent}
-        renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.sectionTitle}>{title}</Text>
-        )}
-        renderItem={({ item }) => (
-          <View style={styles.gridContainer}>
-            {item.map((prod: FoodItem) => (
-              <FoodCard 
-                key={prod.id} 
-                item={prod} 
-                onAdd={handleAddToCart} 
-                onRemove={handleRemoveProduct} 
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={styles.container}>
+        <Header cartCount={cartCount} cartTotal={cartTotal} />
+        <View style={[
+          styles.mainContent, 
+          { 
+            flexDirection: isLandscape ? 'row' : 'column',
+            paddingHorizontal: isLandscape ? 40 : 0  
+          }
+        ]}>
+          <View style={{ flex: isLandscape ? 1 : undefined, marginRight: isLandscape ? 15 : 0 }}>
+            <View>
+              <FlatList 
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoriesContainer}
+                data={categories}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                  <TouchableOpacity 
+                    style={[styles.categoryBtn, selectedCategory === item && styles.categoryBtnActive]}
+                    onPress={() => setSelectedCategory(item)}
+                  >
+                    <Text style={[styles.categoryText, selectedCategory === item && styles.categoryTextActive]}>{item}</Text>
+                  </TouchableOpacity>
+                )}
               />
-            ))}
+            </View>
+
+            <View style={styles.addForm}>
+              <TextInput
+                style={styles.input}
+                placeholder="Product name"
+                value={newName}
+                onChangeText={setNewName}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Price"
+                value={newPrice}
+                onChangeText={setNewPrice}
+                keyboardType="numeric"
+                onSubmitEditing={handleAddProduct}
+              />
+              <TouchableOpacity style={styles.submitBtn} onPress={handleAddProduct}>
+                <MaterialCommunityIcons name="plus" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
-        )}
-      />
-    </View>
+          
+          <View style={{ flex: isLandscape ? 1.5 : 1 }}>
+            <SectionList
+              sections={sectionsData} 
+              keyExtractor={(item, index) => item.length > 0 ? item[0].id.toString() + index : index.toString()}
+              contentContainerStyle={styles.listContent}
+              renderSectionHeader={({ section: { title } }) => (
+                <Text style={styles.sectionTitle}>{title}</Text>
+              )}
+              renderItem={({ item }) => (
+                <View style={styles.gridContainer}>
+                  {item.map((prod: FoodItem) => (
+                    <FoodCard 
+                      key={prod.id} 
+                      item={prod} 
+                      onAdd={handleAddToCart} 
+                      onRemove={handleRemoveProduct} 
+                    />
+                  ))}
+                </View>
+              )}
+            />
+          </View>
+
+        </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -134,6 +151,9 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     backgroundColor: '#e6e6e6' 
+  },
+  mainContent: {
+    flex: 1,
   },
   categoriesContainer: { 
     paddingVertical: 15,
